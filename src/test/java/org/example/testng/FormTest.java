@@ -11,8 +11,8 @@ public class FormTest {
 
     static public WebDriver driver;
     static public String URL = "https://demoqa.com/";
-    static public String FIRST_NAME = "Anatolie";
-    static public String LAST_NAME = "Sneg";
+    static public String FIRST_NAME = "Ivan";
+    static public String LAST_NAME = "Ivanov";
     static public String EMAIL = "example@gmail.com";
     static public String GENDER = "Male";
 
