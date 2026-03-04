@@ -2,6 +2,7 @@ package org.example.testng;
 
 import org.example.pom.FormPom;
 import org.example.utils.Driver;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.WebDriver;
 import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
@@ -30,7 +31,7 @@ public class FormTest {
     @BeforeMethod
     public void beforeMethod() {
         driver = Driver.getAutoLocalDriver();
-        driver.manage().window().maximize();
+        driver.manage().window().setSize(new Dimension(1920, 1080));
     }
 
     @Test
