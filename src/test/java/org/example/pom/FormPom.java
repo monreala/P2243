@@ -1,11 +1,11 @@
 package org.example.pom;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
+import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+
+import org.example.utils.Utils;
 
 public class FormPom {
 
@@ -27,10 +27,101 @@ public class FormPom {
     @FindBy(xpath = "//*[@id='userEmail']")
     WebElement userEmail;
 
+    @FindBy(xpath = "//*[@id='userNumber']")
+    WebElement userNumber;
+
+    @FindBy(id = "dateOfBirthInput")
+    WebElement dateOfBirthInput;
+
+    @FindBy(className = "react-datepicker__month-select")
+    WebElement monthSelect;
+
+    @FindBy(className = "react-datepicker__year-select")
+    WebElement yearSelect;
+    /*
+        @FindBy(xpath = "//*[@id='hobbies-checkbox-1']")
+        WebElement hobby;
+    */
+    @FindBy(xpath = "//*[@id='submit']")
+    WebElement buttonSubmit;
+
+    @FindBy(xpath = "//*[@id='subjectsInput']")
+    WebElement subjectsInput;
+
+    @FindBy(xpath = "//*[@id='state']")
+    WebElement state;
+
+    @FindBy(xpath = "//*[@id='city']")
+    WebElement city;
+
+
     public FormPom(WebDriver driverParam) {
         driver = driverParam;
         js = (JavascriptExecutor) driver;
         PageFactory.initElements(driver, this);
+    }
+
+    public String getTableDataByLabel(String labelParam){
+        WebElement data = driver.findElement(By.xpath("//table//*[text()='" + labelParam + "']/../*[2]"));
+        return data.getText();
+    }
+
+    public void setCity(String cityParam){
+        scrollToElement(city);
+        js.executeScript("arguments[0].scrollIntoView({block: 'center'});", city);
+        pause(500);
+        city.click();
+        pause(500);
+        WebElement ddCity = driver.findElement(By.xpath("//*[text()='" + cityParam + "']"));
+        ddCity.click();
+    }
+
+    public void setState(String stateParam){
+        scrollToElement(state);
+        js.executeScript("arguments[0].scrollIntoView({block: 'center'});", state);
+        pause(500);
+        state.click();
+        pause(500);
+        WebElement ddState = driver.findElement(By.xpath("//*[text()='" + stateParam + "']"));
+        ddState.click();
+    }
+    /*
+        public void setHobbies(String hobbiesParam){
+            WebElement hobby = driver.findElement(By.xpath("//*[@id='hobbiesWrapper']//label[text()=" + hobbiesParam + "'Sports']/../input"));
+            hobby.sendKeys(" ");
+        }
+    */
+    public void setSubject(String subjectParam){
+        subjectsInput.sendKeys(subjectParam);
+        subjectsInput.sendKeys(Keys.ENTER);
+
+    }
+
+    public void clickButtonSubmit() {
+        scrollToElement(buttonSubmit);
+        js.executeScript("arguments[0].click();", buttonSubmit);
+    }
+
+    public void setDateOfBirth(String day, String month, String year) {
+        dateOfBirthInput.click();
+
+        org.openqa.selenium.support.ui.Select yearDropdown =
+                new org.openqa.selenium.support.ui.Select(yearSelect);
+        yearDropdown.selectByVisibleText(year);
+
+        org.openqa.selenium.support.ui.Select monthDropdown =
+                new org.openqa.selenium.support.ui.Select(monthSelect);
+        monthDropdown.selectByVisibleText(month);
+
+        WebElement dayElement = driver.findElement(By.xpath(
+                "//div[contains(@class,'react-datepicker__day') and text()='" + day + "']"
+        ));
+        dayElement.click();
+    }
+
+    public void setUserNumber(String numberParam){
+        userNumber.clear();
+        userNumber.sendKeys(numberParam);
     }
 
     public void setGender(String genderParam) {
@@ -54,9 +145,9 @@ public class FormPom {
     }
 
     public void clickPracticeForm() {
+        /*Utils.exceptionWait(driver, ExpectedConditions.visibilityOf(practiceForm), 10);*/
         practiceForm.click();
     }
-
     public void clickForms() {
         forms.click();
     }
