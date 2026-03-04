@@ -145,11 +145,12 @@ public class FormPom {
     }
 
     public void clickPracticeForm() {
-        /*Utils.exceptionWait(driver, ExpectedConditions.visibilityOf(practiceForm), 10);*/
-        practiceForm.click();
+        scrollToElement(practiceForm);
+        js.executeScript("arguments[0].click();", practiceForm);
     }
     public void clickForms() {
-        forms.click();
+        scrollToElement(forms);
+        js.executeScript("arguments[0].click();", forms);
     }
 
     public void pause(int ms) {
@@ -168,11 +169,21 @@ public class FormPom {
     public void closeAdvert() {
         try {
             js.executeScript("var elem = document.evaluate(\"//*[@id='adplus-anchor']\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;" +
-                    "elem.parentNode.removeChild(elem);");
+                    "if(elem) elem.parentNode.removeChild(elem);");
         } catch (Exception ignored) {}
         try {
             js.executeScript("var elem = document.evaluate(\"//footer\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;" +
-                    "elem.parentNode.removeChild(elem);");
+                    "if(elem) elem.parentNode.removeChild(elem);");
+        } catch (Exception ignored) {}
+        try {
+            js.executeScript(
+                    "document.querySelectorAll('iframe, #fixedban, .ad, #adplus-anchor, #adplus-slide-panel, #close-fixedban').forEach(function(e){e.remove();});" +
+                    "var all = document.querySelectorAll('*');" +
+                    "for(var i=0;i<all.length;i++){" +
+                    "  var s = window.getComputedStyle(all[i]);" +
+                    "  if(s.position==='fixed' && all[i].tagName!=='HTML' && all[i].tagName!=='BODY' && all[i].id!=='app'){all[i].remove();}" +
+                    "}"
+            );
         } catch (Exception ignored) {}
     }
 }

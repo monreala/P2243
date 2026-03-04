@@ -38,6 +38,8 @@ public class FormTest {
         System.out.println("Start test");
         driver.get(URL);
         FormPom formPom = new FormPom(driver);
+        formPom.pause(1000);
+        formPom.closeAdvert();
         formPom.clickForms();
         formPom.pause(1000);
         formPom.clickPracticeForm();
