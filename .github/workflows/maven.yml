@@ -32,24 +32,62 @@ jobs:
       with:
         chrome-version: 'stable'
     - name: Install Xvfb and ffmpeg
-      run: sudo apt-get update && sudo apt-get install -y xvfb ffmpeg
+      run: sudo apt-get update && sudo apt-get install -y xvfb ffmpeg xdotool imagemagick
     - name: Start virtual display
       run: |
         Xvfb :99 -screen 0 1920x1080x24 &
+        sleep 2
         echo "DISPLAY=:99" >> $GITHUB_ENV
+        # Verify virtual display is working
+        DISPLAY=:99 xdpyinfo | head -5 || echo "xdpyinfo failed"
     - name: Start video recording
       run: |
-        ffmpeg -y -f x11grab -video_size 1920x1080 -i :99 -codec:v libx264 -r 15 /tmp/test-video.mp4 &
+        # Record to MKV (Matroska) - this container is resilient to crashes
+        # and will always be playable even if ffmpeg is killed abruptly
+        nohup ffmpeg -y -f x11grab -draw_mouse 1 -video_size 1920x1080 -framerate 15 -i :99 \
+          -codec:v libx264 -preset ultrafast -pix_fmt yuv420p \
+          /tmp/test-video.mkv > /tmp/ffmpeg.log 2>&1 &
         echo $! > /tmp/ffmpeg.pid
+        sleep 2
+        # Verify ffmpeg is running and capturing
+        echo "ffmpeg PID: $(cat /tmp/ffmpeg.pid)"
+        kill -0 $(cat /tmp/ffmpeg.pid) && echo "ffmpeg is running" || echo "ffmpeg failed to start"
+        cat /tmp/ffmpeg.log || true
     - name: Run tests
-      run: mvn -B test --file pom.xml
+      run: |
+        # Take a screenshot after a delay to verify Chrome is rendering on Xvfb
+        (sleep 15 && DISPLAY=:99 import -window root /tmp/screenshot-during-test.png 2>/dev/null || true) &
+        mvn -B test --file pom.xml
       env:
         DISPLAY: ':99'
     - name: Stop video recording
       if: always()
       run: |
-        kill $(cat /tmp/ffmpeg.pid) || true
-        sleep 5
+        # Show ffmpeg log for debugging
+        echo "=== ffmpeg log ==="
+        cat /tmp/ffmpeg.log 2>/dev/null | tail -30 || true
+        echo "=================="
+        if [ -f /tmp/ffmpeg.pid ]; then
+          FFMPEG_PID=$(cat /tmp/ffmpeg.pid)
+          # Graceful stop with SIGINT
+          kill -INT $FFMPEG_PID 2>/dev/null || true
+          # Wait for ffmpeg to finish
+          for i in $(seq 1 15); do
+            if ! kill -0 $FFMPEG_PID 2>/dev/null; then break; fi
+            sleep 1
+          done
+          kill -9 $FFMPEG_PID 2>/dev/null || true
+        fi
+        sleep 2
+        # Convert MKV to MP4 (properly finalized container)
+        if [ -f /tmp/test-video.mkv ]; then
+          ffmpeg -y -i /tmp/test-video.mkv -codec copy -movflags +faststart /tmp/test-video.mp4
+          echo "Video converted successfully"
+          ls -la /tmp/test-video.mp4
+          ffprobe /tmp/test-video.mp4 2>&1 | head -20
+        else
+          echo "MKV recording not found!"
+        fi
     - name: Upload test video
       if: always()
       uses: actions/upload-artifact@v4
@@ -57,4 +95,27 @@ jobs:
         name: test-video
         path: /tmp/test-video.mp4
         retention-days: 7
-
+    - name: Upload diagnostic screenshot
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshot-during-test
+        path: /tmp/screenshot-during-test.png
+        retention-days: 7
+    - name: Generate Allure Report
+      if: always()
+      run: mvn allure:report -DskipTests
+    - name: Upload Allure results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-results
+        path: target/allure-results
+        retention-days: 30
+    - name: Upload Allure HTML Report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: target/site/allure-maven-plugin
+        retention-days: 30

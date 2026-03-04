@@ -22,8 +22,12 @@ public class Driver {
             // Virtual display available (Xvfb on CI) — run visible Chrome for video recording
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--disable-gpu");
+            options.addArguments("--disable-software-rasterizer");
+            options.addArguments("--ozone-platform=x11");
             options.addArguments("--window-size=1920,1080");
             options.addArguments("--remote-allow-origins=*");
+            options.addArguments("--force-device-scale-factor=1");
         } else if ("true".equalsIgnoreCase(System.getenv("CI"))) {
             // CI without display — headless mode
             options.addArguments("--headless=new");

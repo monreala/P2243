@@ -1,4 +1,6 @@
 package org.example.testng;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.example.pom.FormPom;
 import org.example.utils.Driver;
@@ -11,6 +13,7 @@ import org.testng.annotations.Test;
 
 
 public class FormTest {
+    private static final Logger logger = LogManager.getLogger(FormTest.class);
 
     static public WebDriver driver;
     static public String URL = "https://demoqa.com/";
@@ -36,7 +39,7 @@ public class FormTest {
 
     @Test
     public void formTest() {
-        System.out.println("Start test");
+        logger.info("Start test");
         driver.get(URL);
         FormPom formPom = new FormPom(driver);
         formPom.pause(1000);
@@ -62,7 +65,7 @@ public class FormTest {
         String actualName = formPom.getTableDataByLabel("Student Name");
         Assert.assertEquals(actualName, FIRST_NAME + " " + LAST_NAME);
 
-        System.out.println("Finish test");
+        logger.info("Finish test");
 
     }
 

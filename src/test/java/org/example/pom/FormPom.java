@@ -1,11 +1,15 @@
 package org.example.pom;
 
+import io.qameta.allure.Allure;
+import io.qameta.allure.Step;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import org.example.utils.Utils;
+
+import java.io.ByteArrayInputStream;
 
 public class FormPom {
 
@@ -61,12 +65,18 @@ public class FormPom {
         PageFactory.initElements(driver, this);
     }
 
+    @Step("Get table data by label: {labelParam}")
     public String getTableDataByLabel(String labelParam){
+        takeScreenshot("Before getting table data: " + labelParam);
         WebElement data = driver.findElement(By.xpath("//table//*[text()='" + labelParam + "']/../*[2]"));
-        return data.getText();
+        String text = data.getText();
+        takeScreenshot("After getting table data: " + labelParam);
+        return text;
     }
 
+    @Step("Set city: {cityParam}")
     public void setCity(String cityParam){
+        takeScreenshot("Before setting city");
         scrollToElement(city);
         js.executeScript("arguments[0].scrollIntoView({block: 'center'});", city);
         pause(500);
@@ -74,9 +84,12 @@ public class FormPom {
         pause(500);
         WebElement ddCity = driver.findElement(By.xpath("//*[text()='" + cityParam + "']"));
         ddCity.click();
+        takeScreenshot("After setting city");
     }
 
+    @Step("Set state: {stateParam}")
     public void setState(String stateParam){
+        takeScreenshot("Before setting state");
         scrollToElement(state);
         js.executeScript("arguments[0].scrollIntoView({block: 'center'});", state);
         pause(500);
@@ -84,6 +97,7 @@ public class FormPom {
         pause(500);
         WebElement ddState = driver.findElement(By.xpath("//*[text()='" + stateParam + "']"));
         ddState.click();
+        takeScreenshot("After setting state");
     }
     /*
         public void setHobbies(String hobbiesParam){
@@ -91,18 +105,25 @@ public class FormPom {
             hobby.sendKeys(" ");
         }
     */
+    @Step("Set subject: {subjectParam}")
     public void setSubject(String subjectParam){
+        takeScreenshot("Before setting subject");
         subjectsInput.sendKeys(subjectParam);
         subjectsInput.sendKeys(Keys.ENTER);
-
+        takeScreenshot("After setting subject");
     }
 
+    @Step("Click Submit button")
     public void clickButtonSubmit() {
+        takeScreenshot("Before clicking Submit");
         scrollToElement(buttonSubmit);
         js.executeScript("arguments[0].click();", buttonSubmit);
+        takeScreenshot("After clicking Submit");
     }
 
+    @Step("Set date of birth: {day}.{month}.{year}")
     public void setDateOfBirth(String day, String month, String year) {
+        takeScreenshot("Before setting date of birth");
         dateOfBirthInput.click();
 
         org.openqa.selenium.support.ui.Select yearDropdown =
@@ -117,40 +138,62 @@ public class FormPom {
                 "//div[contains(@class,'react-datepicker__day') and text()='" + day + "']"
         ));
         dayElement.click();
+        takeScreenshot("After setting date of birth");
     }
 
+    @Step("Set user number: {numberParam}")
     public void setUserNumber(String numberParam){
+        takeScreenshot("Before setting user number");
         userNumber.clear();
         userNumber.sendKeys(numberParam);
+        takeScreenshot("After setting user number");
     }
 
+    @Step("Set gender: {genderParam}")
     public void setGender(String genderParam) {
+        takeScreenshot("Before setting gender");
         WebElement gender = driver.findElement(By.xpath("//*[@id='genterWrapper']//label[text()='" + genderParam + "']"));
         gender.click();
+        takeScreenshot("After setting gender");
     }
 
+    @Step("Set email: {emailParam}")
     public void setEmail(String emailParam) {
+        takeScreenshot("Before setting email");
         userEmail.clear();
         userEmail.sendKeys(emailParam);
+        takeScreenshot("After setting email");
     }
 
+    @Step("Set last name: {lastNameParam}")
     public void setLastName(String lastNameParam) {
+        takeScreenshot("Before setting last name");
         lastName.clear();
         lastName.sendKeys(lastNameParam);
+        takeScreenshot("After setting last name");
     }
-
+    @Step("Set first name: {firstNameParam}")
     public void setFirstName(String firstNameParam) {
+        takeScreenshot("Before setting first name");
         firstName.clear();
         firstName.sendKeys(firstNameParam);
+        takeScreenshot("After setting first name");
     }
 
+    @Step("Click Practice Form")
     public void clickPracticeForm() {
+        takeScreenshot("Before clicking Practice Form");
         scrollToElement(practiceForm);
         js.executeScript("arguments[0].click();", practiceForm);
+        takeScreenshot("After clicking Practice Form");
     }
+
+    @Step("Click Forms")
     public void clickForms() {
+        takeScreenshot("Before clicking Forms");
         scrollToElement(forms);
         js.executeScript("arguments[0].click();", forms);
+        takeScreenshot("After clicking Forms");
     }
 
     public void pause(int ms) {
@@ -166,6 +209,7 @@ public class FormPom {
         js.executeScript("arguments[0].scrollIntoView(true);", element);
     }
 
+    @Step("Close adverts")
     public void closeAdvert() {
         try {
             js.executeScript("var elem = document.evaluate(\"//*[@id='adplus-anchor']\", document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;" +
@@ -185,5 +229,13 @@ public class FormPom {
                     "}"
             );
         } catch (Exception ignored) {}
+    }
+    private void takeScreenshot(String stepName) {
+        try {
+            byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
+            Allure.addAttachment(stepName, "image/png", new ByteArrayInputStream(screenshot), ".png");
+        } catch (Exception e) {
+            Allure.addAttachment("Screenshot Error", e.toString());
+        }
     }
 }
