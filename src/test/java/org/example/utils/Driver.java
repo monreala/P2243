@@ -13,10 +13,19 @@ import java.util.HashMap;
 
 public class Driver {
     static public WebDriver getAutoLocalDriver() {
-        WebDriverManager.chromedriver().setup(); // sets up ChromeDriver automatically
+        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        // If running in CI (GitHub Actions sets CI=true), use headless mode
-        if ("true".equalsIgnoreCase(System.getenv("CI"))) {
+        String display = System.getenv("DISPLAY");
+        boolean hasDisplay = display != null && !display.isEmpty();
+
+        if (hasDisplay) {
+            // Virtual display available (Xvfb on CI) — run visible Chrome for video recording
+            options.addArguments("--no-sandbox");
+            options.addArguments("--disable-dev-shm-usage");
+            options.addArguments("--window-size=1920,1080");
+            options.addArguments("--remote-allow-origins=*");
+        } else if ("true".equalsIgnoreCase(System.getenv("CI"))) {
+            // CI without display — headless mode
             options.addArguments("--headless=new");
             options.addArguments("--no-sandbox");
             options.addArguments("--disable-dev-shm-usage");
